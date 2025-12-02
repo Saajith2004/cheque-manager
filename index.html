@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#4CAF50">
+    <title>Cheque Manager Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="spinner"></div>
+        <p>Loading Cheque Manager...</p>
+    </div>
+
+    <!-- Authentication Screen -->
+    <div id="auth-screen" class="screen">
+        <div class="auth-container">
+            <div class="logo">
+                <i class="fas fa-money-check-alt"></i>
+                <h1>Cheque Manager</h1>
+                <p>Secure • Cloud • Mobile-Friendly</p>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="tab active" onclick="showTab('login')">Login</button>
+                <button class="tab" onclick="showTab('register')">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-tab" class="auth-form">
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button onclick="loginEmail()" class="btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                
+                <div class="divider">OR</div>
+                
+                <!-- Biometric Login -->
+                <button onclick="loginBiometric()" class="btn-biometric" id="biometric-btn">
+                    <i class="fas fa-fingerprint"></i> Use Biometric
+                </button>
+                
+                <!-- Quick Login Buttons -->
+                <div class="quick-login">
+                    <button onclick="loginGoogle()" class="btn-google">
+                        <i class="fab fa-google"></i> Google
+                    </button>
+                    <button onclick="loginPhone()" class="btn-phone">
+                        <i class="fas fa-mobile-alt"></i> Phone
+                    </button>
+                </div>
+                
+                <p class="forgot-password" onclick="forgotPassword()">
+                    Forgot Password?
+                </p>
+            </div>
+            
+            <!-- Register Form -->
+            <div id="register-tab" class="auth-form" style="display:none;">
+                <input type="text" id="register-name" placeholder="Full Name" required>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="password" id="register-password" placeholder="Password (min 6 chars)" required>
+                <input type="password" id="register-confirm" placeholder="Confirm Password" required>
+                
+                <div class="terms">
+                    <input type="checkbox" id="agree-terms" required>
+                    <label for="agree-terms">
+                        I agree to <a href="#" onclick="showTerms()">Terms & Privacy</a>
+                    </label>
+                </div>
+                
+                <button onclick="registerEmail()" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+            </div>
+        </div>
+        
+        <!-- PWA Install Prompt -->
+        <div id="install-prompt" class="install-prompt">
+            <p>Install Cheque Manager for quick access!</p>
+            <button onclick="installApp()">Install</button>
+            <button onclick="dismissInstall()">Later</button>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div id="app-screen" class="screen" style="display:none;">
+        <!-- Header -->
+        <header class="app-header">
+            <button class="menu-btn" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h2>Cheque Manager</h2>
+            <div class="header-actions">
+                <button onclick="syncData()" class="sync-btn" id="sync-btn">
+                    <i class="fas fa-sync"></i>
+                </button>
+                <button onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar Navigation -->
+        <nav id="sidebar" class="sidebar">
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 id="user-name">User</h3>
+                <p id="user-email">user@example.com</p>
+            </div>
+            
+            <ul class="nav-menu">
+                <li class="active" onclick="showSection('dashboard')">
+                    <i class="fas fa-home"></i> Dashboard
+                </li>
+                <li onclick="showSection('add-cheque')">
+                    <i class="fas fa-plus-circle"></i> Add Cheque
+                </li>
+                <li onclick="showSection('cheque-list')">
+                    <i class="fas fa-list"></i> All Cheques
+                </li>
+                <li onclick="showSection('reports')">
+                    <i class="fas fa-chart-bar"></i> Reports
+                </li>
+                <li onclick="showSection('scan-cheque')">
+                    <i class="fas fa-camera"></i> Scan Cheque
+                </li>
+                <li onclick="showSection('settings')">
+                    <i class="fas fa-cog"></i> Settings
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="storage-info">
+                    <div class="storage-bar">
+                        <div class="storage-used"></div>
+                    </div>
+                    <small>Storage: 25% used</small>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard -->
+            <section id="dashboard" class="content-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fas fa-money-check"></i>
+                        <h3 id="total-cheques">0</h3>
+                        <p>Total Cheques</p>
+                    </div>
+                    <div class="stat-card pending">
+                        <i class="fas fa-clock"></i>
+                        <h3 id="pending-cheques">0</h3>
+                        <p>Pending</p>
+                    </div>
+                    <div class="stat-card cleared">
+                        <i class="fas fa-check-circle"></i>
+                        <h3 id="cleared-cheques">0</h3>
+                        <p>Cleared</p>
+                    </div>
+                    <div class="stat-card amount">
+                        <i class="fas fa-rupee-sign"></i>
+                        <h3 id="total-amount">₹0</h3>
+                        <p>Total Amount</p>
+                    </div>
+                </div>
+                
+                <div class="recent-cheques">
+                    <h3>Recent Cheques</h3>
+                    <div id="recent-list"></div>
+                </div>
+            </section>
+
+            <!-- Add Cheque Form -->
+            <section id="add-cheque" class="content-section" style="display:none;">
+                <h2>Add New Cheque</h2>
+                <form id="cheque-form" class="cheque-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Cheque Number *</label>
+                            <input type="text" id="cheque-no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bank Name *</label>
+                            <input type="text" id="bank-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Account Number *</label>
+                            <input type="text" id="account-no" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Payee Name *</label>
+                            <input type="text" id="payee-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Amount (₹) *</label>
+                            <input type="number" step="0.01" id="amount" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Remarks</label>
+                            <textarea id="remarks" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Status *</label>
+                            <select id="status" required>
+                                <option value="Pending">Pending</option>
+                                <option value="Cleared">Cleared</option>
+                                <option value="Bounced">Bounced</option>
+                                <option value="Cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Save Cheque
+                        </button>
+                        <button type="button" onclick="resetForm()" class="btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Cheque List -->
+            <section id="cheque-list" class="content-section" style="display:none;">
+                <div class="list-header">
+                    <h2>All Cheques</h2>
+                    <div class="list-controls">
+                        <input type="text" id="search-input" placeholder="Search cheques...">
+                        <select id="filter-status">
+                            <option value="all">All Status</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Cleared">Cleared</option>
+                            <option value="Bounced">Bounced</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                        <button onclick="exportData()" class="btn-export">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="cheque-table-container">
+                    <table id="cheque-table">
+                        <thead>
+                            <tr>
+                                <th>Cheque No</th>
+                                <th>Payee</th>
+                                <th>Bank</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cheque-table-body">
+                            <!-- Data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Scan Cheque (Image Upload) -->
+            <section id="scan-cheque" class="content-section" style="display:none;">
+                <h2>Scan Cheque Image</h2>
+                <div class="scan-container">
+                    <div class="upload-area" id="drop-area">
+                        <i class="fas fa-camera fa-3x"></i>
+                        <h3>Upload Cheque Image</h3>
+                        <p>Drag & drop or click to upload</p>
+                        <input type="file" id="file-input" accept="image/*" capture="environment">
+                        <p class="hint">Take photo of cheque for automatic data extraction</p>
+                    </div>
+                    
+                    <div class="preview-container">
+                        <div id="image-preview"></div>
+                        <div class="extracted-data" id="extracted-data">
+                            <h4>Extracted Information</h4>
+                            <div id="ocr-results">
+                                <p>Upload image to extract data automatically</p>
+                            </div>
+                            <button onclick="useExtractedData()" class="btn-primary" id="use-data-btn" disabled>
+                                <i class="fas fa-magic"></i> Fill Form with Data
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="ocr-info">
+                        <i class="fas fa-info-circle"></i>
+                        <p>We use Optical Character Recognition (OCR) to automatically extract cheque details from images</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings -->
+            <section id="settings" class="content-section" style="display:none;">
+                <h2>Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-card">
+                        <h3><i class="fas fa-user-shield"></i> Security</h3>
+                        <div class="setting-option">
+                            <span>Enable Biometric Login</span>
+                            <label class="switch">
+                                <input type="checkbox" id="biometric-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-option">
+                            <span>Auto-Lock Timer</span>
+                            <select id="auto-lock">
+                                <option value="0">Never</option>
+                                <option value="1">1 minute</option>
+                                <option value="5">5 minutes</option>
+                                <option value="15">15 minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-cloud"></i> Cloud Sync</h3>
+                        <div class="setting-option">
+                            <span>Auto Sync</span>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-sync" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-option">
+                            <span>Sync Frequency</span>
+                            <select id="sync-frequency">
+                                <option value="realtime">Real-time</option>
+                                <option value="hourly">Hourly</option>
+                                <option value="daily">Daily</option>
+                            </select>
+                        </div>
+                        <button onclick="manualBackup()" class="btn-backup">
+                            <i class="fas fa-database"></i> Create Backup
+                        </button>
+                    </div>
+                    
+                    <div class="setting-card">
+                        <h3><i class="fas fa-mobile-alt"></i> Mobile App</h3>
+                        <p>Install as PWA for offline access:</p>
+                        <button onclick="installApp()" class="btn-install">
+                            <i class="fas fa-download"></i> Install App
+                        </button>
+                        <div class="device-info">
+                            <p><strong>Device:</strong> <span id="device-type">Detecting...</span></p>
+                            <p><strong>Storage:</strong> <span id="storage-info">Checking...</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Add Cheque FAB -->
+        <button class="fab" onclick="showSection('add-cheque')">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="db.js"></script>
+    <script src="ocr.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

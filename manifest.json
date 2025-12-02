@@ -1,0 +1,88 @@
+{
+    "name": "Cheque Manager Pro",
+    "short_name": "ChequeMgr",
+    "description": "Mobile-friendly cheque management with cloud sync and biometric security",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#4CAF50",
+    "theme_color": "#4CAF50",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "icons": [
+        {
+            "src": "icons/icon-72.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/icon-152.png",
+            "sizes": "152x152",
+            "type": "image/png"
+        },
+        {
+            "src": "image/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "image/icon-384x384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "sizes": "512x512",
+            "src": "image/icon-512x512.png",
+            "type": "image/png"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/mobile.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow",
+            "label": "Cheque Manager Mobile View"
+        },
+        {
+            "src": "screenshots/desktop.png",
+            "sizes": "1920x1080",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Cheque Manager Desktop View"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Add New Cheque",
+            "short_name": "Add",
+            "description": "Quickly add a new cheque",
+            "url": "/#add-cheque",
+            "icons": [{ "src": "icons/add-icon.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "View Cheques",
+            "short_name": "View",
+            "description": "View all cheques",
+            "url": "/#cheque-list",
+            "icons": [{ "src": "icons/list-icon.png", "sizes": "96x96" }]
+        }
+    ],
+    "categories": ["finance", "business", "productivity"],
+    "prefer_related_applications": false
+}
